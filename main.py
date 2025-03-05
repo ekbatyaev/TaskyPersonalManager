@@ -39,6 +39,7 @@ class TaskCreation(StatesGroup):
     description_retrival = State()
     get_deadline = State()
     deadline_retrival = State()
+    overall_task_retrival = State()
 
 # Клавиатуры
 
@@ -79,6 +80,13 @@ def task_options():
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
 
+def task_creation_end_options():
+    keyboard_list = [
+        [InlineKeyboardButton(text='Перезаписать', callback_data='rewrite')],
+        [InlineKeyboardButton(text='Создать задачу', callback_data='make_task')]
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
+    return keyboard
 # Команды
 
 #Команда /start
@@ -161,8 +169,8 @@ async def get_task_description(call: CallbackQuery, state: FSMContext):
     if last_message_id:
         await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
     await asyncio.sleep(0.5)
-    description_quesiton = await call.message.answer(f"Пришло время самого интересного 🔥 - *описания*.\nНапиши описание своей задачи", parse_mode="Markdown")
-    await state.update_data(last_message_id=description_quesiton.message_id)
+    description_question = await call.message.answer(f"Пришло время самого интересного 🔥 - *описания*.\nНапиши описание своей задачи", parse_mode="Markdown")
+    await state.update_data(last_message_id=description_question.message_id)
     await state.set_state(TaskCreation.get_description)
 
 @user_router.message(F.text, TaskCreation.get_description)
@@ -194,7 +202,8 @@ async def get_task_description(call: CallbackQuery, state: FSMContext):
     await asyncio.sleep(0.5)
     description_quesiton = await call.message.answer(f"Осталось самое главное - *дедлайн* ⏰\nНапиши дату в формате: *12:45-17.05*", parse_mode="Markdown")
     await state.update_data(last_message_id=description_quesiton.message_id)
-    await state.set_state(TaskCreation.get_description)
+    await state.set_state(TaskCreation.get_deadline)
+
 
 @user_router.message(F.text, TaskCreation.get_deadline)
 async def get_deadline(message: Message, state: FSMContext):
@@ -203,12 +212,60 @@ async def get_deadline(message: Message, state: FSMContext):
         last_message_id = data.get("last_message_id")
         if last_message_id:
             await bot.delete_message(chat_id=message.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
-        common_task_message = await message.answer(
-            f"Твой задача выглядит так:\n\n" + f"*Название: *" + data.get("task_name") + "\n" + f"*Описание: *" + data.get("task_description") +
-            "\n" + f"*Дедлайн: *" + message.text, parse_mode="Markdown")
-        await state.update_data( task_deadline = message.text)
-        await state.update_data(last_message_id = common_task_message.message_id)
+        task_deadline_message = await message.answer("Дедлайн задачи 🔥: " + message.text, reply_markup=task_options()
+            , parse_mode="Markdown")
+        await state.update_data(task_deadline = message.text)
+        await state.update_data(last_message_id = task_deadline_message.message_id)
         await state.set_state(TaskCreation.deadline_retrival)
+
+@user_router.callback_query(F.data == 'alter', TaskCreation.deadline_retrival)
+async def altering_task_deadline(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    last_message_id = data.get("last_message_id")
+    if last_message_id:
+        await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
+    await asyncio.sleep(0.5)
+    task_deadline_question = await call.message.answer("Пожалуйста, напиши дату в формате: *12:45-17.05*", parse_mode="Markdown")
+    await state.update_data(last_message_id=task_deadline_question.message_id)
+    await state.set_state(TaskCreation.get_description)
+
+@user_router.callback_query(F.data == 'continue', TaskCreation.deadline_retrival)
+async def task_overall(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    last_message_id = data.get("last_message_id")
+    if last_message_id:
+        await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
+    await asyncio.sleep(0.5)
+    common_task_message = await call.message.answer(
+                    f"Твой задача выглядит так:\n\n" + f"*Название: *" + data.get("task_name") + "\n" + f"*Описание: *" + data.get("task_description") +
+                    "\n" + f"*Дедлайн: *" + data.get("task_deadline"), reply_markup= task_creation_end_options(), parse_mode="Markdown")
+    await state.update_data(last_message_id = common_task_message.message_id)
+    await state.set_state(TaskCreation.overall_task_retrival)
+
+@user_router.callback_query(F.data == 'rewrite', TaskCreation.overall_task_retrival)
+async def task_rewriting(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    last_message_id = data.get("last_message_id")
+    if last_message_id:
+        await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
+    await asyncio.sleep(0.5)
+    create_task_message = await call.message.answer(f"Начнем все сначала)\nПожалуйста, напиши название задачи", parse_mode="Markdown")
+    await state.update_data(last_message_id=create_task_message.message_id)
+    await state.set_state(TaskCreation.get_title)
+
+@user_router.callback_query(F.data == 'make_task', TaskCreation.overall_task_retrival)
+async def task_creation_confirm(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    last_message_id = data.get("last_message_id")
+    if last_message_id:
+        await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
+    await asyncio.sleep(0.5)
+    await call.message.answer(f"Задача *создана*!🎉", parse_mode="Markdown")
+    await asyncio.sleep(0.5)
+    task_question = await call.message.answer(f"Выбери свою новую задачу: ",
+                                              reply_markup=get_user_option(), parse_mode="Markdown")
+    await state.update_data(last_message_id=task_question.message_id)
+    await state.set_state(MainStates.problem_types)
 
 # Запуск процесса поллинга новых апдейтов
 async def main():
