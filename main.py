@@ -1,5 +1,8 @@
+import re
+import json
 import logging
 import asyncio
+import datetime
 from aiogram import Bot, Dispatcher
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
@@ -24,7 +27,11 @@ dp = Dispatcher(storage=MemoryStorage())
 # Регистрация маршрутизатора
 dp.include_router(user_router)
 
-#Глобальные функции для получения внешних данных
+# Путь к данным задач пользователей
+
+user_path = "user_tasks/task.json"
+
+# Глобальные функции для получения внешних данных
 
 # Классы States
 
@@ -38,6 +45,7 @@ class TaskCreation(StatesGroup):
     get_description = State()
     description_retrival = State()
     get_deadline = State()
+    extend_deadline = State()
     deadline_retrival = State()
     overall_task_retrival = State()
 
@@ -72,18 +80,26 @@ def back_to_main_option():
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
 
+def extend_options():
+    keyboard_list = [
+        [InlineKeyboardButton(text='Да', callback_data='answer_yes')],
+        [InlineKeyboardButton(text='Нет', callback_data='answer_no')]
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
+    return keyboard
+
 def task_options():
     keyboard_list = [
-        [InlineKeyboardButton(text='Изменить', callback_data='alter')],
-        [InlineKeyboardButton(text='Продолжить', callback_data='continue')]
+        [InlineKeyboardButton(text='Продолжить', callback_data='continue')],
+        [InlineKeyboardButton(text='Изменить', callback_data='alter')]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
 
 def task_creation_end_options():
     keyboard_list = [
-        [InlineKeyboardButton(text='Перезаписать', callback_data='rewrite')],
-        [InlineKeyboardButton(text='Создать задачу', callback_data='make_task')]
+        [InlineKeyboardButton(text='Создать задачу', callback_data='make_task')],
+        [InlineKeyboardButton(text='Перезаписать', callback_data='rewrite')]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
@@ -100,7 +116,6 @@ async def start_process(message: Message, state: FSMContext):
                                              f"Меня зовут *Tasky* 🤖 и я умею: \n📌составлять задачи\n📌ставить дедлайны\n📌делать напоминания",
                                              reply_markup=get_started(), parse_mode="Markdown")
         await state.update_data(last_message_id=first_message.message_id)
-        await state.update_data(message_edit = first_message)
     await state.set_state(MainStates.start_state)
 
 # States
@@ -109,9 +124,11 @@ async def start_process(message: Message, state: FSMContext):
 @user_router.callback_query(F.data == 'Начать работу', MainStates.start_state)
 async def task_choice_process(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    message_edit = data.get("message_edit")
+    last_message_id = data.get("last_message_id")
+    if last_message_id:
+        await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
     await asyncio.sleep(0.5)
-    task_question = await message_edit.edit_text(f"Выбери свою задачу: ",
+    task_question = await call.message.answer(f"Выбери свою задачу: ",
                                                     reply_markup = get_user_option(), parse_mode = "Markdown")
     await state.update_data(last_message_id=task_question.message_id)
     await state.set_state(MainStates.problem_types)
@@ -125,7 +142,7 @@ async def creating_new_task(call: CallbackQuery, state: FSMContext):
     if last_message_id:
         await bot.delete_message(chat_id = call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
     await asyncio.sleep(0.5)
-    create_task_message = await call.message.answer(f"Ура, у нас новая задача! Пожалуйста, напиши название задачи", reply_markup=back_to_main_option(), parse_mode="Markdown")
+    create_task_message = await call.message.answer(f"Ура, у нас новая задача! Пожалуйста, напиши *название задачи*", reply_markup=back_to_main_option(), parse_mode="Markdown")
     await state.update_data(last_message_id=create_task_message.message_id)
     await state.set_state(TaskCreation.get_title)
 
@@ -145,7 +162,7 @@ async def back_to_main_options(call: CallbackQuery, state: FSMContext):
 @user_router.message(F.text, TaskCreation.get_title)
 async def get_title(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
-        task_name_confirmation = await message.answer("Cпасибо!\n" + f"*Название твоей задачи: *" + "\n\n" + message.text, reply_markup = task_options(),
+        task_name_confirmation = await message.answer(f"*Название твоей задачи: *" + message.text, reply_markup = task_options(),
                                        parse_mode="Markdown")
         await state.update_data(task_name = message.text)
         await state.update_data(last_message_id=task_name_confirmation.message_id)
@@ -176,7 +193,7 @@ async def get_task_description(call: CallbackQuery, state: FSMContext):
 @user_router.message(F.text, TaskCreation.get_description)
 async def get_description(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
-        task_description_confirmation = await message.answer("Отлично 👍\n" + f"*Описание твоей задачи: *" + "\n\n" + message.text, reply_markup = task_options(),
+        task_description_confirmation = await message.answer(f"*Описание твоей задачи: *" + "\n" + message.text, reply_markup = task_options(),
                                        parse_mode="Markdown")
         await state.update_data(task_description = message.text)
         await state.update_data(last_message_id = task_description_confirmation.message_id)
@@ -212,11 +229,19 @@ async def get_deadline(message: Message, state: FSMContext):
         last_message_id = data.get("last_message_id")
         if last_message_id:
             await bot.delete_message(chat_id=message.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
-        task_deadline_message = await message.answer("Дедлайн задачи 🔥: " + message.text, reply_markup=task_options()
-            , parse_mode="Markdown")
-        await state.update_data(task_deadline = message.text)
-        await state.update_data(last_message_id = task_deadline_message.message_id)
-        await state.set_state(TaskCreation.deadline_retrival)
+
+        if await check_deadline_format(message.text):
+            task_deadline_message = await message.answer("Дедлайн задачи 🔥: " + message.text,
+                                                         reply_markup=task_options()
+                                                         , parse_mode="Markdown")
+            await state.update_data(task_deadline=message.text)
+            await state.update_data(last_message_id=task_deadline_message.message_id)
+            await state.set_state(TaskCreation.deadline_retrival)
+        else:
+            task_deadline_question = await message.answer("Пожалуйста, напиши дату в формате: *12:45-17.05*",
+                                                               parse_mode="Markdown")
+            await state.update_data(last_message_id = task_deadline_question.message_id)
+            await state.set_state(TaskCreation.get_deadline)
 
 @user_router.callback_query(F.data == 'alter', TaskCreation.deadline_retrival)
 async def altering_task_deadline(call: CallbackQuery, state: FSMContext):
@@ -227,19 +252,38 @@ async def altering_task_deadline(call: CallbackQuery, state: FSMContext):
     await asyncio.sleep(0.5)
     task_deadline_question = await call.message.answer("Пожалуйста, напиши дату в формате: *12:45-17.05*", parse_mode="Markdown")
     await state.update_data(last_message_id=task_deadline_question.message_id)
-    await state.set_state(TaskCreation.get_description)
+    await state.set_state(TaskCreation.get_deadline)
 
 @user_router.callback_query(F.data == 'continue', TaskCreation.deadline_retrival)
-async def task_overall(call: CallbackQuery, state: FSMContext):
+async def extending_deadline(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     last_message_id = data.get("last_message_id")
     if last_message_id:
         await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
     await asyncio.sleep(0.5)
+    extend_deadline_message = await call.message.answer(
+                    "Продлить ли дедлайн на день после его прохождения?", reply_markup=  extend_options(), parse_mode="Markdown")
+    await state.update_data(last_message_id = extend_deadline_message.message_id)
+    await state.set_state(TaskCreation.extend_deadline)
+
+@user_router.callback_query(F.data.count("answer"), TaskCreation.extend_deadline)
+async def get_extend_option(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    last_message_id = data.get("last_message_id")
+    if last_message_id:
+        await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
+    await asyncio.sleep(0.5)
+    if call.data == "answer_yes":
+        extend_deadline_option = "Да"
+    else:
+        extend_deadline_option = "Нет"
     common_task_message = await call.message.answer(
-                    f"Твой задача выглядит так:\n\n" + f"*Название: *" + data.get("task_name") + "\n" + f"*Описание: *" + data.get("task_description") +
-                    "\n" + f"*Дедлайн: *" + data.get("task_deadline"), reply_markup= task_creation_end_options(), parse_mode="Markdown")
-    await state.update_data(last_message_id = common_task_message.message_id)
+        f"Твой задача выглядит так:\n\n" + f"*Название: *" + data.get("task_name") + "\n" + f"*Описание: *" + data.get(
+            "task_description") +
+        "\n" + f"*Дедлайн: *" + data.get("task_deadline") + "\n" + f"*Продление дедлайна: *" + extend_deadline_option, reply_markup=task_creation_end_options(),
+        parse_mode="Markdown")
+    await state.update_data(extend_option = extend_deadline_option)
+    await state.update_data(last_message_id=common_task_message.message_id)
     await state.set_state(TaskCreation.overall_task_retrival)
 
 @user_router.callback_query(F.data == 'rewrite', TaskCreation.overall_task_retrival)
@@ -259,13 +303,59 @@ async def task_creation_confirm(call: CallbackQuery, state: FSMContext):
     last_message_id = data.get("last_message_id")
     if last_message_id:
         await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
+    user_tasks = await load_data(user_path)
+    if user_tasks.get(str(call.message.from_user.id)) is None:
+        user_tasks[str(call.message.from_user.id)] = {
+            data.get("task_name"): [data.get("task_description"), data.get("task_deadline"), data.get("extend_option")]
+        }
+    else:
+        user_tasks[str(call.message.from_user.id)][data.get("task_name")] = [data.get("task_description"), data.get("task_deadline"), data.get("extend_option")]
+    await save_data(user_path, user_tasks)
     await asyncio.sleep(0.5)
-    await call.message.answer(f"Задача *создана*!🎉", parse_mode="Markdown")
+    await call.message.answer(f"*Задача создана*!🎉", parse_mode="Markdown")
     await asyncio.sleep(0.5)
     task_question = await call.message.answer(f"Выбери свою новую задачу: ",
                                               reply_markup=get_user_option(), parse_mode="Markdown")
     await state.update_data(last_message_id=task_question.message_id)
     await state.set_state(MainStates.problem_types)
+
+# Функции
+
+# Проверка на валидность формата введенного дедлайна
+
+async def check_deadline_format(input_str):
+    pattern = r"^(\d{2}):(\d{2})-(\d{2})\.(\d{2})$"
+    match = re.match(pattern, input_str)
+
+    if not match:
+        return False
+
+    hours, minutes, day, month = map(int, match.groups())
+    if not (0 <= hours <= 23 and 0 <= minutes <= 59):
+        return False
+    if not (1 <= day <= 31 and 1 <= month <= 12):
+        return False
+    now = datetime.datetime.now()
+    current_year = now.year
+    try:
+        deadline = datetime.datetime(current_year, month, day, hours, minutes)
+    except ValueError:
+        return False
+
+    return deadline > now
+
+#Загрузка данных
+async def load_data(data_file):
+    try:
+        with open(data_file, 'r', encoding='utf-8') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}  # Если файл не существует, возвращаем пустой список
+
+#Сохранение данных
+async def save_data(data_file, data):
+    with open(data_file, 'w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
 
 # Запуск процесса поллинга новых апдейтов
 async def main():
