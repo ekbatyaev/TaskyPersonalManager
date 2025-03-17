@@ -106,7 +106,7 @@ class TaskSearch(StatesGroup):
 
 def get_started():
     keyboard_list = [
-        [InlineKeyboardButton(text="Начать работу", callback_data='Начать работу')]
+        [InlineKeyboardButton(text="Начать работу 🚀 ", callback_data='start_work')]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
@@ -115,9 +115,9 @@ def get_started():
 
 def get_user_option():
     keyboard_list = [
-        [InlineKeyboardButton(text='Создать новую задачу', callback_data='create_task')],
-        [InlineKeyboardButton(text='Найти существующую задачу', callback_data='find_task')],
-        [InlineKeyboardButton(text='Вывести список всех текущих задач', callback_data='get_task_list')]
+        [InlineKeyboardButton(text='Создать новую задачу 🆕', callback_data='create_task')],
+        [InlineKeyboardButton(text='Найти существующую задачу 🔍', callback_data='find_task')],
+        [InlineKeyboardButton(text='Вывести список всех задач 📋', callback_data='get_task_list')]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
@@ -126,31 +126,31 @@ def get_user_option():
 
 def back_to_main_option():
     keyboard_list = [
-        [InlineKeyboardButton(text='Вернуться назад', callback_data='back_to_main')]
+        [InlineKeyboardButton(text='Вернуться назад 🔙', callback_data='back_to_main')]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
 
 def extend_options():
     keyboard_list = [
-        [InlineKeyboardButton(text='Да', callback_data='answer_yes')],
-        [InlineKeyboardButton(text='Нет', callback_data='answer_no')]
+        [InlineKeyboardButton(text='Да ✅', callback_data='answer_yes')],
+        [InlineKeyboardButton(text='Нет ❌', callback_data='answer_no')]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
 
 def task_options():
     keyboard_list = [
-        [InlineKeyboardButton(text='Продолжить', callback_data='continue')],
-        [InlineKeyboardButton(text='Изменить', callback_data='alter')]
+        [InlineKeyboardButton(text='Продолжить ➡️', callback_data='continue')],
+        [InlineKeyboardButton(text='Изменить ✏️', callback_data='alter')]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
 
 def task_creation_end_options():
     keyboard_list = [
-        [InlineKeyboardButton(text='Создать задачу', callback_data='make_task')],
-        [InlineKeyboardButton(text='Перезаписать', callback_data='rewrite')]
+        [InlineKeyboardButton(text='Создать задачу ✅', callback_data='make_task')],
+        [InlineKeyboardButton(text='Перезаписать 🔄', callback_data='rewrite')]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
@@ -159,37 +159,37 @@ def task_creation_end_options():
 
 def task_search_options():
     keyboard_list = [
-        [InlineKeyboardButton(text='Просмотреть задачу', callback_data='watch_task')],
-        [InlineKeyboardButton(text='Найти другую задачу', callback_data='find_another_task')],
-        [InlineKeyboardButton(text='Вывести все задачи', callback_data='write_all')],
+        [InlineKeyboardButton(text='Просмотреть задачу 👀', callback_data='watch_task')],
+        [InlineKeyboardButton(text='Найти другую задачу 🔎', callback_data='find_another_task')],
+        [InlineKeyboardButton(text='Вывести все задачи 📋', callback_data='write_all')],
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
 
 def founded_task_options():
     keyboard_list = [
-        [InlineKeyboardButton(text='Задача выполнена', callback_data='task_completed')],
-        [InlineKeyboardButton(text='Изменить задачу', callback_data='change_task')],
-        [InlineKeyboardButton(text='Удалить задачу', callback_data='delete_task')]
+        [InlineKeyboardButton(text='Задача выполнена ✅', callback_data='task_completed')],
+        [InlineKeyboardButton(text='Изменить задачу ✏️', callback_data='change_task')],
+        [InlineKeyboardButton(text='Удалить задачу 🗑', callback_data='delete_task')]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
 
 def change_task_options():
     keyboard_list = [
-        [InlineKeyboardButton(text='Изменить название', callback_data='change_name')],
-        [InlineKeyboardButton(text='Изменить описание', callback_data='change_description')],
-        [InlineKeyboardButton(text='Изменить дедлайн', callback_data='change_deadline')],
-        [InlineKeyboardButton(text='Изменить продление', callback_data='change_extension')],
-        [InlineKeyboardButton(text='Вернуться назад', callback_data='back')],
+        [InlineKeyboardButton(text='Изменить название ✏️', callback_data='change_name')],
+        [InlineKeyboardButton(text='Изменить описание 📝', callback_data='change_description')],
+        [InlineKeyboardButton(text='Изменить дедлайн ⏳', callback_data='change_deadline')],
+        [InlineKeyboardButton(text='Изменить продление ✍️', callback_data='change_extension')],
+        [InlineKeyboardButton(text='Вернуться назад 🔙', callback_data='back')],
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
 
 def back_to_change_options():
     keyboard_list = [
-        [InlineKeyboardButton(text='Изменить еще одно поле', callback_data='change_another_field')],
-        [InlineKeyboardButton(text='Вернуться в главное меню', callback_data='back_to_main_menu')]
+        [InlineKeyboardButton(text='Изменить еще одно поле ✏️', callback_data='change_another_field')],
+        [InlineKeyboardButton(text='Вернуться в главное меню 🏠', callback_data='back_to_main_menu')]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
@@ -205,7 +205,7 @@ async def start_process(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
         await asyncio.sleep(0.5)
         first_message = await message.answer(f"*Привет, вышкинец!*" + "\n\n" +
-                                             f"Меня зовут *Tasky* 🤖 и я умею: \n📌составлять задачи\n📌ставить дедлайны\n📌делать напоминания",
+                                             f"Меня зовут *Tasky* 🤖 и я *умею*: \n📌составлять задачи\n📌ставить дедлайны\n📌делать напоминания",
                                              reply_markup=get_started(), parse_mode="Markdown")
         await state.update_data(last_message_id=first_message.message_id)
     await state.set_state(MainStates.start_state)
@@ -213,7 +213,7 @@ async def start_process(message: Message, state: FSMContext):
 # States
 
 
-@user_router.callback_query(F.data == 'Начать работу', MainStates.start_state)
+@user_router.callback_query(F.data == 'start_work', MainStates.start_state)
 async def task_choice_process(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     last_message_id = data.get("last_message_id")
@@ -362,6 +362,9 @@ async def extending_deadline(call: CallbackQuery, state: FSMContext):
 async def get_extend_option(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     last_message_id = data.get("last_message_id")
+    task_name = data.get("task_name")
+    task_description = data.get("task_description")
+    task_deadline = data.get("task_deadline")
     if last_message_id:
         await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
     await asyncio.sleep(0.5)
@@ -370,9 +373,8 @@ async def get_extend_option(call: CallbackQuery, state: FSMContext):
     else:
         extend_deadline_option = "Нет"
     common_task_message = await call.message.answer(
-        f"Твоя задача выглядит так:\n\n" + f"*Название: *" + data.get("task_name") + "\n" + f"*Описание: *" + data.get(
-            "task_description") +
-        "\n" + f"*Дедлайн: *" + data.get("task_deadline") + "\n" + f"*Продление дедлайна: *" + extend_deadline_option, reply_markup=task_creation_end_options(),
+        f"Твоя задача выглядит так:\n\n" + f"*Название: *" + task_name + "\n" + f"*Описание: *" + task_description +
+        "\n" + f"*Дедлайн: *" + task_deadline + "\n" + f"*Продление дедлайна: *" + extend_deadline_option, reply_markup=task_creation_end_options(),
         parse_mode="Markdown")
     await state.update_data(extend_option = extend_deadline_option)
     await state.update_data(last_message_id=common_task_message.message_id)
@@ -393,15 +395,19 @@ async def task_rewriting(call: CallbackQuery, state: FSMContext):
 async def task_creation_confirm(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     last_message_id = data.get("last_message_id")
+    task_name = data.get("task_name")
+    task_description = data.get("task_description")
+    task_deadline = data.get("task_deadline")
+    task_extend_option = data.get("extend_option")
     if last_message_id:
         await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
     user_tasks = await load_data(user_path)
     if user_tasks.get(str(call.from_user.id)) is None:
         user_tasks[str(call.from_user.id)] = {
-            data.get("task_name"): [data.get("task_description"), data.get("task_deadline"), data.get("extend_option"), "Создана"]
+            task_name: [task_description, task_deadline, task_extend_option, "Создана"]
         }
     else:
-        user_tasks[str(call.from_user.id)][data.get("task_name")] = [data.get("task_description"), data.get("task_deadline"), data.get("extend_option"), "Создана"]
+        user_tasks[str(call.from_user.id)][task_name] = [task_description, task_deadline, task_extend_option, "Создана"]
     await save_data(user_path, user_tasks)
     await asyncio.sleep(0.5)
     await call.message.answer(f"*Задача создана*!🎉", parse_mode="Markdown")
@@ -432,12 +438,14 @@ async def probable_task(message: Message, state: FSMContext):
         search_result = await search(message.text, str(message.from_user.id))
         await asyncio.sleep(0.5)
         if search_result != "Вопрос не найден":
+            user_tasks = await load_data(user_path)
             task_description_confirmation = await wait_message.edit_text(
-                text=f"*По твоему запросу я нашел эту задачу: *" + "\n\n"
-                     + search_result, reply_markup=task_search_options(), parse_mode="Markdown")
+                text=f"По твоему запросу я нашел эту задачу: " + "\n\n"
+                     + f"*Название: *" + search_result + "\n" + f"*Дедлайн: *" + user_tasks[str(message.from_user.id)][search_result][1], reply_markup=task_search_options(), parse_mode="Markdown")
             await state.update_data(founded_task=search_result)
             await state.update_data(last_message_id=task_description_confirmation.message_id)
             await state.update_data(message_edit = task_description_confirmation)
+            await state.update_data(user_tasks=user_tasks)
             await state.set_state(TaskSearch.query_retrival)
         else:
             await wait_message.edit_text(
@@ -447,33 +455,47 @@ async def probable_task(message: Message, state: FSMContext):
             await state.update_data(last_message_id=task_question.message_id)
             await state.set_state(MainStates.problem_types)
 
-
 @user_router.callback_query(F.data == 'watch_task', TaskSearch.query_retrival)
 async def looking_at_task(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     last_message_id = data.get("last_message_id")
     founded_task = data.get("founded_task")
+    user_tasks = await load_data(user_path)
     if last_message_id:
         await bot.delete_message(chat_id = call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
     await asyncio.sleep(0.5)
-    user_tasks = await load_data(user_path)
     task_storage = user_tasks[str(call.from_user.id)][founded_task]
     common_task_message = await call.message.answer(
         f"Твоя задача выглядит так:\n\n" + f"*Название: *" + founded_task + "\n" + f"*Описание: *" + task_storage[0] +
         "\n" + f"*Дедлайн: *" + task_storage[1] + "\n" + f"*Продление дедлайна: *" + task_storage[2] +  "\n" + f"*Статус: *" + task_storage[3],
         reply_markup=founded_task_options(),
         parse_mode="Markdown")
-    await state.update_data(user_tasks = user_tasks)
     await state.update_data(message_edit = common_task_message)
     await state.set_state(TaskSearch.query_retrival)
+
+@user_router.callback_query(F.data == 'find_another_task', TaskSearch.query_retrival)
+async def looking_at_task(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    user_tasks = data.get("user_tasks")
+    founded_task = data.get("founded_task")
+    message_to_edit = data.get("message_edit")
+    await asyncio.sleep(0.5)
+    await message_to_edit.edit_text(
+        text=f"По твоему запросу я нашел эту задачу: " + "\n\n"
+             +f"*Название: *" +  founded_task + "\n" + f"*Дедлайн: *" + user_tasks[str(call.from_user.id)][founded_task][1] , reply_markup=None, parse_mode="Markdown")
+    await asyncio.sleep(0.5)
+    query_message = await call.message.answer(f"Напиши название нужной тебе задачи", parse_mode="Markdown")
+    await state.update_data(last_message_id=query_message.message_id)
+    await state.set_state(TaskSearch.get_query)
 
 @user_router.callback_query(F.data == 'task_completed', TaskSearch.query_retrival)
 async def completing_task(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     founded_task = data.get("founded_task")
     user_tasks = data.get("user_tasks")
+    message_to_edit = data.get("message_edit")
     user_tasks[str(call.from_user.id)][founded_task][3] = "Выполнена"
-    await data.get("message_edit").edit_text(text = f"Твоя задача выглядит так:\n\n" + f"*Название: *" + founded_task + "\n"
+    await message_to_edit.edit_text(text = f"Твоя задача выглядит так:\n\n" + f"*Название: *" + founded_task + "\n"
                                                     + f"*Описание: *" + user_tasks[str(call.from_user.id)][founded_task][0] + "\n" + f"*Дедлайн: *" +
                                                     user_tasks[str(call.from_user.id)][founded_task][1] + "\n" + f"*Продление дедлайна: *"
                                                     + user_tasks[str(call.from_user.id)][founded_task][2] +  "\n"
@@ -487,27 +509,14 @@ async def completing_task(call: CallbackQuery, state: FSMContext):
     await state.update_data(last_message_id=task_question.message_id)
     await state.set_state(MainStates.problem_types)
 
-@user_router.callback_query(F.data == 'find_another_task', TaskSearch.query_retrival)
-async def looking_at_task(call: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    await asyncio.sleep(0.5)
-    await data.get("message_edit").edit_text(
-        text=f"*По твоему запросу я нашел эту задачу: *" + "\n\n"
-             + data.get("founded_task"), reply_markup=None, parse_mode="Markdown")
-    await asyncio.sleep(0.5)
-    query_message = await call.message.answer(f"Напиши название нужной тебе задачи", parse_mode="Markdown")
-    await state.update_data(last_message_id=query_message.message_id)
-    await state.set_state(TaskSearch.get_query)
-
-
 @user_router.callback_query(F.data == 'change_task', TaskSearch.query_retrival)
 async def task_altering_process(call: CallbackQuery, state: FSMContext):
-    print("ТУТ")
     data = await state.get_data()
     founded_task = data.get("founded_task")
     user_tasks = data.get("user_tasks")
+    message_to_edit = data.get("message_edit")
     await asyncio.sleep(0.5)
-    await data.get("message_edit").edit_text(
+    await message_to_edit.edit_text(
         text=f"Твоя задача выглядит так:\n\n" + f"*Название: *" + founded_task + "\n"
              + f"*Описание: *" + user_tasks[str(call.from_user.id)][founded_task][0] + "\n" + f"*Дедлайн: *" +
              user_tasks[str(call.from_user.id)][founded_task][1] + "\n" + f"*Продление дедлайна: *"
@@ -516,12 +525,39 @@ async def task_altering_process(call: CallbackQuery, state: FSMContext):
         parse_mode="Markdown")
     await state.set_state(TaskSearch.task_changing)
 
+
+@user_router.callback_query(F.data == 'delete_task', TaskSearch.query_retrival)
+async def task_altering_process(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    founded_task = data.get("founded_task")
+    user_tasks = data.get("user_tasks")
+    message_to_edit = data.get("message_edit")
+    await asyncio.sleep(0.5)
+    await message_to_edit.edit_text(
+        text=f"Твоя задача выглядит так:\n\n" + f"*Название: *" + founded_task + "\n"
+             + f"*Описание: *" + user_tasks[str(call.from_user.id)][founded_task][0] + "\n" + f"*Дедлайн: *" +
+             user_tasks[str(call.from_user.id)][founded_task][1] + "\n" + f"*Продление дедлайна: *"
+             + user_tasks[str(call.from_user.id)][founded_task][2] + "\n"
+             + f"*Статус: *" + user_tasks[str(call.from_user.id)][founded_task][3], reply_markup=None,
+        parse_mode="Markdown")
+    del user_tasks[str(call.from_user.id)][founded_task]
+    await save_data(user_path, user_tasks)
+    await asyncio.sleep(0.5)
+    await call.message.answer(f"Задача *удалена*", parse_mode="Markdown")
+    await asyncio.sleep(0.5)
+    task_question = await call.message.answer(f"Выбери свою новую задачу: ",
+                                              reply_markup=get_user_option(), parse_mode="Markdown")
+    await state.update_data(last_message_id=task_question.message_id)
+    await state.set_state(MainStates.problem_types)
+
+
 @user_router.callback_query(F.data.count("name") + F.data.count("description") + + F.data.count("deadline") != 0 , TaskSearch.task_changing)
 async def changing_task_field(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     founded_task = data.get("founded_task")
     user_tasks = data.get("user_tasks")
-    await data.get("message_edit").edit_text(
+    message_to_edit = data.get("message_edit")
+    await message_to_edit.edit_text(
         text=f"Твоя задача выглядит так:\n\n" + f"*Название: *" + founded_task + "\n"
              + f"*Описание: *" + user_tasks[str(call.from_user.id)][founded_task][0] + "\n" + f"*Дедлайн: *" +
              user_tasks[str(call.from_user.id)][founded_task][1] + "\n" + f"*Продление дедлайна: *"
@@ -539,7 +575,8 @@ async def changing_task_field(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     founded_task = data.get("founded_task")
     user_tasks = data.get("user_tasks")
-    await data.get("message_edit").edit_text(
+    message_to_edit = data.get("message_edit")
+    await message_to_edit.edit_text(
         text=f"Твоя задача выглядит так:\n\n" + f"*Название: *" + founded_task + "\n"
              + f"*Описание: *" + user_tasks[str(call.from_user.id)][founded_task][0] + "\n" + f"*Дедлайн: *" +
              user_tasks[str(call.from_user.id)][founded_task][1] + "\n" + f"*Продление дедлайна: *"
@@ -581,11 +618,13 @@ async def new_field(message: Message, state: FSMContext):
 
         data = await state.get_data()
         await save_data(user_path, user_tasks)
-        overall_message = await message.answer( f"Твоя задача выглядит так:\n\n" + f"*Название: *" + data.get("founded_task") + "\n"
-                 + f"*Описание: *" + user_tasks[str(message.from_user.id)][data.get("founded_task")][0] + "\n" + f"*Дедлайн: *" +
-                 user_tasks[str(message.from_user.id)][data.get("founded_task")][1] + "\n" + f"*Продление дедлайна: *"
-                 + user_tasks[str(message.from_user.id)][data.get("founded_task")][2] + "\n"
-                 + f"*Статус: *" + user_tasks[str(message.from_user.id)][data.get("founded_task")][3], reply_markup=back_to_change_options(),
+        # Обновленное поле
+        founded_task = data.get("founded_task")
+        overall_message = await message.answer( f"Твоя задача выглядит так:\n\n" + f"*Название: *" + founded_task + "\n"
+                 + f"*Описание: *" + user_tasks[str(message.from_user.id)][founded_task][0] + "\n" + f"*Дедлайн: *" +
+                 user_tasks[str(message.from_user.id)][founded_task][1] + "\n" + f"*Продление дедлайна: *"
+                 + user_tasks[str(message.from_user.id)][founded_task][2] + "\n"
+                 + f"*Статус: *" + user_tasks[str(message.from_user.id)][founded_task][3], reply_markup=back_to_change_options(),
             parse_mode="Markdown")
         await state.update_data(message_edit = overall_message)
         await state.update_data(user_tasks=user_tasks)
@@ -595,12 +634,14 @@ async def new_field(message: Message, state: FSMContext):
 async def changing_another_one_field(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     user_tasks = data.get("user_tasks")
+    founded_task = data.get("founded_task")
+    message_to_edit = data.get("message_edit")
     await asyncio.sleep(0.5)
-    await data.get("message_edit").edit_text(text = f"Твоя задача выглядит так:\n\n" + f"*Название: *" + data.get("founded_task") + "\n"
-                 + f"*Описание: *" + user_tasks[str(call.from_user.id)][data.get("founded_task")][0] + "\n" + f"*Дедлайн: *" +
-                 user_tasks[str(call.from_user.id)][data.get("founded_task")][1] + "\n" + f"*Продление дедлайна: *"
-                 + user_tasks[str(call.from_user.id)][data.get("founded_task")][2] + "\n"
-                 + f"*Статус: *" + user_tasks[str(call.from_user.id)][data.get("founded_task")][3],
+    await message_to_edit.edit_text(text = f"Твоя задача выглядит так:\n\n" + f"*Название: *" + founded_task + "\n"
+                 + f"*Описание: *" + user_tasks[str(call.from_user.id)][founded_task][0] + "\n" + f"*Дедлайн: *" +
+                 user_tasks[str(call.from_user.id)][founded_task][1] + "\n" + f"*Продление дедлайна: *"
+                 + user_tasks[str(call.from_user.id)][founded_task][2] + "\n"
+                 + f"*Статус: *" + user_tasks[str(call.from_user.id)][founded_task][3],
                                              reply_markup=change_task_options(),
         parse_mode="Markdown")
     await state.set_state(TaskSearch.task_changing)
@@ -608,8 +649,9 @@ async def changing_another_one_field(call: CallbackQuery, state: FSMContext):
 @user_router.callback_query(F.data == "back_to_main_menu", TaskSearch.alter_field_retrival)
 async def changing_another_one_field(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
+    message_to_edit = data.get("message_edit")
     await asyncio.sleep(0.5)
-    await data.get("message_edit").edit_text(reply_markup=None,
+    await message_to_edit.edit_text(reply_markup=None,
         parse_mode="Markdown")
     await asyncio.sleep(0.5)
     task_question = await call.message.answer(f"Выбери свою новую задачу: ",
@@ -623,6 +665,7 @@ async def extension_field_changing(call: CallbackQuery, state: FSMContext):
     last_message_id = data.get("last_message_id")
     user_tasks = data.get("user_tasks")
     founded_task = data.get("founded_task")
+    message_to_edit = data.get("message_edit")
     if last_message_id:
         await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
     await asyncio.sleep(0.5)
@@ -632,7 +675,7 @@ async def extension_field_changing(call: CallbackQuery, state: FSMContext):
         extend_deadline_option = "Нет"
     user_tasks[str(call.from_user.id)][founded_task][2] = extend_deadline_option
     await save_data(user_path, user_tasks)
-    await data.get("message_edit").edit_text(text = f"Твоя задача выглядит так:\n\n" + f"*Название: *" + founded_task + "\n"
+    await message_to_edit.edit_text(text = f"Твоя задача выглядит так:\n\n" + f"*Название: *" + founded_task + "\n"
                                            + f"*Описание: *" + user_tasks[str(call.from_user.id)][founded_task][
                                                0] + "\n" + f"*Дедлайн: *" +
                                            user_tasks[str(call.from_user.id)][founded_task][
@@ -658,8 +701,8 @@ async def get_all_list(call: CallbackQuery, state: FSMContext):
     user_tasks = list(user_storage[str(call.from_user.id)].keys())
     list_of_task = ""
     for i, task in enumerate(user_tasks):
-        list_of_task += f"*{i+1})* " + task + "\n"
-    await call.message.answer(f"Твой список задач 📖: \n" + list_of_task, parse_mode="Markdown")
+        list_of_task += f"*{i+1})* " + task + "\n" + "*Дедлайн: *" + user_storage[str(call.from_user.id)][task][1] + "\n"
+    await call.message.answer(f"Твой список задач 📋: \n" + list_of_task, parse_mode="Markdown")
     await asyncio.sleep(0.5)
     task_question = await call.message.answer(f"Выбери свою новую задачу: ",
                                               reply_markup=get_user_option(), parse_mode="Markdown")
