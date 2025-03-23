@@ -265,7 +265,7 @@ def get_task_history_option():
 
         [InlineKeyboardButton(text='Выполненные ✅', callback_data='completed_tasks')],
         [InlineKeyboardButton(text='Просроченные ⏰', callback_data='overdue_tasks')],
-        [InlineKeyboardButton(text='Удаленные 🗑️', callback_data='deleted_tasks')]
+        [InlineKeyboardButton(text='Отложенные️ 🕒', callback_data='deferred_tasks')]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
@@ -906,7 +906,7 @@ async def get_history_task_option(call: CallbackQuery, state: FSMContext):
         status = "completed"
     elif call.data == "overdue_tasks":
         status = "overdue"
-    elif call.data == "deleted_tasks":
+    elif call.data == "deferred_tasks":
         status = "backlog"
 
     task_events[user_id] = asyncio.Event()  # Создаём событие для ожидания ответа
