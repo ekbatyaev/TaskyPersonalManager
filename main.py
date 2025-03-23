@@ -170,6 +170,7 @@ class TaskSearch(StatesGroup):
     extension_retrival = State()
     get_type_task_list = State()
     history_list_retrival = State()
+    find_history_task = State()
 
 # Клавиатуры
 
@@ -261,6 +262,7 @@ def back_to_change_options():
 
 def get_task_history_option():
     keyboard_list = [
+
         [InlineKeyboardButton(text='Выполненные ✅', callback_data='completed_tasks')],
         [InlineKeyboardButton(text='Просроченные ⏰', callback_data='overdue_tasks')],
         [InlineKeyboardButton(text='Удаленные 🗑️', callback_data='deleted_tasks')]
@@ -270,11 +272,21 @@ def get_task_history_option():
 
 def back_history_options():
     keyboard_list = [
+        [InlineKeyboardButton(text='Найти задачу 🔍', callback_data='find_task')],
         [InlineKeyboardButton(text='Выбрать другую категорию️ 🔄', callback_data='another_category')],
         [InlineKeyboardButton(text='Вернуться в главное меню 🏠', callback_data='back_to_main_menu')]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
     return keyboard
+
+def find_history_options():
+    keyboard_list = [
+        [InlineKeyboardButton(text='Найти другую задачу 🔍', callback_data='find_another_task')],
+        [InlineKeyboardButton(text='Вернуться в главное меню 🏠', callback_data='back_to_main_menu')]
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_list)
+    return keyboard
+
 
 # Команды
 
@@ -912,17 +924,21 @@ async def get_history_task_option(call: CallbackQuery, state: FSMContext):
         await state.set_state(MainStates.problem_types)
         return
 
-    user_tasks = task_results.pop(user_id, [])  # Забираем результат и удаляем его
-    print(user_tasks)
+    tasks = task_results.pop(user_id, [])  # Забираем результат и удаляем его
+    print(tasks)
+    user_tasks = {}
+    for task in tasks:
+        user_tasks[task.get("title")] = [task.get("description"), task.get("deadline"), task.get("id")]
     list_of_task = ""
-    if not user_tasks:
+    if not tasks:
         answer_message = await database_think_message.edit_text(text="У тебя пока нет задач 📋")
     else:
-        for i, task in enumerate(user_tasks):
+        for i, task in enumerate(tasks):
             list_of_task += f"*{i + 1})* " + task.get("title") + "\n" + "*Дедлайн ⏳: *" + task.get("deadline") + "\n"
         answer_message = await database_think_message.edit_text(text=f"Твой список задач 📋: \n\n" + list_of_task, reply_markup = back_history_options(), parse_mode="Markdown")
         await asyncio.sleep(0.5)
     await state.update_data(task_list = list_of_task)
+    await state.update_data(user_tasks = user_tasks)
     await state.update_data(message_to_edit = answer_message)
     await state.set_state(TaskSearch.history_list_retrival)
 
@@ -953,6 +969,87 @@ async def back_to_main_options(call: CallbackQuery, state: FSMContext):
     await asyncio.sleep(0.5)
     task_question = await call.message.answer(f"Выбери свою задачу: ",
                                                  reply_markup=get_user_option(), parse_mode="Markdown")
+    await state.update_data(last_message_id=task_question.message_id)
+    await state.set_state(MainStates.problem_types)
+
+@user_router.callback_query(F.data == 'find_task', TaskSearch.history_list_retrival)
+async def task_search(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    last_message_id = data.get("last_message_id")
+    if last_message_id:
+        await bot.delete_message(chat_id = call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
+    await asyncio.sleep(0.5)
+    query_message = await call.message.answer(f"Напиши название нужной тебе задачи", reply_markup = back_to_main_option(), parse_mode="Markdown")
+    await state.update_data(last_message_id = query_message.message_id)
+    await state.set_state(TaskSearch.find_history_task)
+
+@user_router.callback_query(F.data == 'back_to_main', TaskSearch.find_history_task)
+async def back_to_main(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    last_message_id = data.get("last_message_id")
+    await asyncio.sleep(0.5)
+    if last_message_id:
+        await bot.delete_message(chat_id=call.from_user.id, message_id=last_message_id)  # Удаление последнего сообщения
+    await asyncio.sleep(0.5)
+    task_question = await call.message.answer(f"Выбери свою новую задачу: ",
+                                              reply_markup=get_user_option(), parse_mode="Markdown")
+    await state.update_data(last_message_id=task_question.message_id)
+    await state.set_state(MainStates.problem_types)
+
+@user_router.message(F.text, TaskSearch.find_history_task)
+async def probable_task(message: Message, state: FSMContext):
+    async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
+        data = await state.get_data()
+        await asyncio.sleep(0.5)
+        user_tasks = data.get("user_tasks")
+        wait_message  = await message.answer(f"_Ведется поиск..._", parse_mode="Markdown")
+        search_result = await search(message.text, str(message.from_user.id), user_tasks)
+        await asyncio.sleep(0.5)
+        if search_result != "Вопрос не найден":
+            task_description_confirmation = await wait_message.edit_text(
+                text=f"По твоему запросу я нашел эту задачу: " + "\n\n"
+                     + f"*Название ✨: *" + search_result  + "\n"
+                     + f"*Описание 📝: *" + user_tasks[search_result][0] + f"*Дедлайн ⏳: *" + user_tasks[search_result][1], reply_markup=find_history_options(), parse_mode="Markdown")
+            await state.update_data(founded_task=search_result)
+            await state.update_data(message_edit = task_description_confirmation)
+            await state.update_data(user_tasks=user_tasks)
+            await state.set_state(TaskSearch.history_list_retrival)
+        else:
+            lose_message = await wait_message.edit_text(
+                text=f"Я не смог найти твою задачу 🙁" + "\n\n",reply_markup =  find_history_options(), parse_mode="Markdown")
+            await state.update_data(message_edit=lose_message)
+            await state.set_state(TaskSearch.find_history_task)
+
+
+@user_router.callback_query(F.data == 'find_another_task', TaskSearch.find_history_task)
+async def looking_at_task(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    user_tasks = data.get("user_tasks")
+    founded_task = data.get("founded_task")
+    message_to_edit = data.get("message_edit")
+    await asyncio.sleep(0.5)
+    await message_to_edit.edit_text(
+        text=f"По твоему запросу я нашел эту задачу: " + "\n\n"
+             +f"*Название ✨: *" +  founded_task + "\n" + f"*Описание 📝: *" + user_tasks[founded_task][0] + f"*Дедлайн ⏳: *" + user_tasks[founded_task][1] , reply_markup=None, parse_mode="Markdown")
+    await asyncio.sleep(0.5)
+    query_message = await call.message.answer(f"Напиши название нужной тебе задачи", reply_markup = back_to_main_option(), parse_mode="Markdown")
+    await state.update_data(last_message_id=query_message.message_id)
+    await state.set_state(TaskSearch.find_history_task)
+
+@user_router.callback_query(F.data == 'back_to_main_menu', TaskSearch.find_history_task)
+async def back_to_main(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    user_tasks = data.get("user_tasks")
+    founded_task = data.get("founded_task")
+    message_to_edit = data.get("message_edit")
+    await asyncio.sleep(0.5)
+    await message_to_edit.edit_text(
+        text=f"По твоему запросу я нашел эту задачу: " + "\n\n"
+             + f"*Название ✨: *" + founded_task + "\n" + f"*Описание 📝: *" + user_tasks[founded_task][
+                 0] + f"*Дедлайн ⏳: *" + user_tasks[founded_task][1], reply_markup=None, parse_mode="Markdown")
+    await asyncio.sleep(0.5)
+    task_question = await call.message.answer(f"Выбери свою новую задачу: ",
+                                              reply_markup=get_user_option(), parse_mode="Markdown")
     await state.update_data(last_message_id=task_question.message_id)
     await state.set_state(MainStates.problem_types)
 
